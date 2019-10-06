@@ -1,10 +1,10 @@
-wadze - Web Assembly Decoder - Zero Extras
+wadze - WebAssembly Decoder - Zero Extras
 ==========================================
 
 Wadze is a library that parses WebAssembly .wasm binary files into a
 Python dictionary that holds the contents of the associated
 WebAssembly module.  It does nothing more and has no dependencies.
-However, it is quite small, very fast, can run in parallel, and could
+However, it is quite small, fast, can run in parallel, and could
 be used to build other tools that might want to manipulate WebAssembly
 in some way.
 
