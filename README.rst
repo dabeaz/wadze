@@ -34,6 +34,11 @@ to see the exported objects, do this:
     for exp in module['export']:
         print(exp)
 
+The data representation stays fairly faithful to how WebAssembly
+encodes modules, but wadze tries to make it a touch more "Pythonic."
+The final data structure is a dictionary that mostly contains a mix of
+lists and named tuples.
+
 Decoding of instructions can be done in parallel using multiprocessing.
 For example:
 
