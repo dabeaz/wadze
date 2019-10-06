@@ -18,18 +18,8 @@
 # * Neither the name of the David Beazley or Dabeaz LLC may be used to
 #   endorse or promote products derived from this software without
 #   specific prior written permission. 
-
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This software is provided "as is."  The risks of using it are yours.
 
 from collections import namedtuple
 from itertools import islice
@@ -97,28 +87,34 @@ TableType = namedtuple('TableType', ['elemtype', 'limits'])
 def parse_tabletype(stream):
     return TableType(_typemap[next(stream)], parse_limits(stream))
 
+
+GlobalType = namedtuple('GlobalType', ['type', 'mut'])
+
+def parse_globaltype(stream):
+    return GlobalType(_typemap[next(stream)], next(stream))
+
 ImportFunction = namedtuple('ImportFunction', ['module','name','typeidx'])
 ImportTable = namedtuple('ImportTable', ['module','name', 'tabletype'])
 ImportMemory = namedtuple('ImportMemory', ['module', 'name', 'limits'])
-ImportGlobal = namedtuple('ImportGlobal', ['module', 'name', 'type', 'mut'])
+ImportGlobal = namedtuple('ImportGlobal', ['module', 'name', 'globaltype'])
+
+_imports = {
+    0 : (ImportFunction, parse_unsigned),
+    1 : (ImportTable, parse_tabletype),
+    2 : (ImportMemory, parse_limits),
+    3 : (ImportGlobal, parse_globaltype),
+}    
 
 def parse_import(stream):
     module = parse_string(stream)
     name = parse_string(stream)
-    itype = next(stream)
-    if itype == 0:
-        return ImportFunction(module, name, parse_unsigned(stream))
-    elif itype == 1:
-        return ImportTable(module, name, parse_tabletype(stream))
-    elif itype == 2:
-        return ImportMemory(module, name, parse_limits(stream))
-    elif itype == 3:
-        return ImportGlobal(module, name, _typemap[next(stream)], next(stream))
+    cls, func = _imports[next(stream)]
+    return cls(module, name, func(stream))
 
-GlobalType = namedtuple('Global', ['type', 'mut', 'expr'])
+Global = namedtuple('Global', ['globaltype', 'expr'])
 
 def parse_global(stream):
-    return GlobalType(_typemap[next(stream)], next(stream), parse_instructions(stream))
+    return Global(parse_globaltype(stream), parse_instructions(stream))
 
 ExportFunction = namedtuple('ExportFunction', ['name', 'ref'])
 ExportTable = namedtuple('ExportTable', ['name', 'ref'])
