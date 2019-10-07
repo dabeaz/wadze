@@ -378,6 +378,8 @@ def parse_module(stream):
     if isinstance(stream, bytes):
         stream = iter(stream)
     header = bytes(islice(stream, 8))
+    if header[:4] != b'\x00asm':
+        raise ValueError('Expected .wasm')
     sections = { }
     while True:
         try:
